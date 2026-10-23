@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>¡Hola, Mundo!</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #fff;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background-size: 300% 300%;
+      animation: fondo 12s ease infinite;
+    }
+    @keyframes fondo {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    canvas { position: fixed; inset: 0; z-index: 0; }
+    main { position: relative; z-index: 1; text-align: center; padding: 1.5rem; }
+    h1 {
+      font-size: clamp(2.5rem, 10vw, 7rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(90deg, #ff6ec4, #7873f5, #4ade80, #ff6ec4);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: brillo 6s linear infinite;
+    }
+    @keyframes brillo { to { background-position: 300% 0; } }
+    p { margin-top: 1rem; font-size: clamp(1rem, 2.5vw, 1.4rem); opacity: .8; min-height: 1.6em; }
+    button {
+      margin-top: 2rem;
+      padding: .8rem 1.8rem;
+      font-size: 1.1rem;
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, .5);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+      transition: transform .15s, background .15s;
+    }
+    button:hover { transform: scale(1.06); background: rgba(255, 255, 255, .18); }
+    button:focus-visible { outline: 3px solid #4ade80; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      body, h1 { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confeti" aria-hidden="true"></canvas>
+  <main>
+    <h1>¡Hola, Mundo!</h1>
+    <p id="saludo" aria-live="polite"></p>
+    <button id="boton" type="button">Saludar de nuevo 🎉</button>
+  </main>
+
+  <script>
+    // Saludos en varios idiomas: uno nuevo cada vez que se pulsa el botón
+    const saludos = [
+      "Hola, Mundo", "Hello, World", "Bonjour, le monde", "Hallo, Welt",
+      "Ciao, mondo", "Olá, Mundo", "こんにちは、世界", "Kaixo, mundua"
+    ];
+    let i = 0;
+    const saludo = document.getElementById("saludo");
+
+    // Efecto de máquina de escribir
+    function escribir(texto) {
+      saludo.textContent = "";
+      [...texto].forEach((letra, n) => {
+        setTimeout(() => (saludo.textContent += letra), n * 60);
+      });
+    }
+
+    // Confeti sencillo con canvas
+    const canvas = document.getElementById("confeti");
+    const ctx = canvas.getContext("2d");
+    let piezas = [];
+    function ajustar() { canvas.width = innerWidth; canvas.height = innerHeight; }
+    addEventListener("resize", ajustar);
+    ajustar();
+
+    function lanzarConfeti() {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      for (let n = 0; n < 120; n++) {
+        piezas.push({
+          x: canvas.width / 2, y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 16, vy: Math.random() * -14 - 2,
+          color: `hsl(${Math.random() * 360}, 90%, 60%)`,
+          size: Math.random() * 8 + 4
+        });
+      }
+    }
+
+    function animar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      piezas = piezas.filter(p => p.y < canvas.height + 20);
+      for (const p of piezas) {
+        p.vy += 0.35;            // gravedad
+        p.x += p.vx;
+        p.y += p.vy;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      }
+      requestAnimationFrame(animar);
+    }
+
+    function saludar() {
+      escribir(saludos[i++ % saludos.length]);
+      lanzarConfeti();
+    }
+
+    document.getElementById("boton").addEventListener("click", saludar);
+    animar();
+    saludar();
+  </script>
+</body>
+</html>
